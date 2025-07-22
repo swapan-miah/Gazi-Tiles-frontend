@@ -6,8 +6,8 @@ import Loading from "../../Components/Loading/Loading";
 import { NavLink } from "react-router-dom";
 
 const Home = () => {
-  const { user } = useContext(AuthContext);
-  const [role, loading] = useRole(user?.email);
+  // const { user } = useContext(AuthContext);
+  // const [role, loading] = useRole(user?.email);
 
   // if (loading) {
   //   return <Loading></Loading>;
@@ -17,7 +17,7 @@ const Home = () => {
 
   return (
     <div className=" h-screen flex justify-center items-center">
-      {role ? (
+      {/* {role ? (
         <button className="  text-xl btn btn-success ">
           {" "}
           <li className=" list-none">
@@ -26,7 +26,8 @@ const Home = () => {
         </button>
       ) : (
         <Login></Login>
-      )}
+      )} */}
+      Home Route
     </div>
   );
 };
