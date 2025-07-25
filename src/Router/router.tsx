@@ -12,6 +12,7 @@ import Purchase from "../Pages/Dashboard/Purchase/Purchase";
 import Store from "../Pages/Dashboard/Store/Store";
 import SaleForm from "../Pages/Dashboard/SaleForm/SaleForm";
 import SalesList from "../Pages/Dashboard/SaleList/SaleList";
+import Godown from "../Pages/Dashboard/Godown/Godown";
 
 const router = createBrowserRouter([
   {
@@ -58,6 +59,10 @@ const router = createBrowserRouter([
       {
         path: "/dashboard/sales-history",
         element: <SalesList></SalesList>,
+      },
+      {
+        path: "/dashboard/godown",
+        element: <Godown></Godown>,
       },
     ],
   },

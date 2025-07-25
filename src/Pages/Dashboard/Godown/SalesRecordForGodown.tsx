@@ -1,27 +1,25 @@
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 
-interface PurchaseRecord {
+interface SalesRecord {
   product_code: string;
-  company: string;
   total_caton: number;
   total_feet: number;
-  invoices: string[];
   date: string;
 }
 
-const PurchaseRecordForGodown = ({ date }: { date: string }) => {
+const SalesRecordForGodown = ({ date }: { date: string }) => {
   const { data, isLoading, error } = useQuery({
-    queryKey: ["purchase-record", date],
+    queryKey: ["sales-record", date],
     queryFn: async () => {
       const res = await fetch(
-        `http://localhost:5000/api/purchase/group/custom-date?date=${date}`
+        `http://localhost:5000/api/sale/group/custom-date?date=${date}`
       );
       if (!res.ok) {
-        throw new Error("Failed to fetch purchase records");
+        throw new Error("Failed to fetch sales records");
       }
       const json = await res.json();
-      return json.data as PurchaseRecord[];
+      return json.data as SalesRecord[];
     },
   });
 
@@ -30,7 +28,7 @@ const PurchaseRecordForGodown = ({ date }: { date: string }) => {
 
   return (
     <div className="p-4">
-      <h2 className="text-lg font-semibold mb-4">গোডাউন পারচেজ রেকর্ড</h2>
+      <h2 className="text-lg font-semibold mb-4">গোডাউন সেল রেকর্ড</h2>
       <table className="w-full border border-gray-400">
         <thead>
           <tr className="bg-gray-200">
@@ -65,4 +63,4 @@ const PurchaseRecordForGodown = ({ date }: { date: string }) => {
   );
 };
 
-export default PurchaseRecordForGodown;
+export default SalesRecordForGodown;
