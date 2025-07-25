@@ -10,7 +10,9 @@ export interface IProduct {
 }
 
 const fetchProducts = async () => {
-  const res = await axios.get("http://localhost:5000/api/product/all");
+  const res = await axios.get(
+    "https://gazi-tiles-backend.vercel.app/api/product/all"
+  );
   return res.data.products;
 };
 

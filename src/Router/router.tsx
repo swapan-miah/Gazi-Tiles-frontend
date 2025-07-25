@@ -1,4 +1,4 @@
-import { createBrowserRouter, Link } from "react-router-dom";
+import { createBrowserRouter, Link, Navigate } from "react-router-dom";
 import Main from "../Layout/Main/Main";
 import DashboardLayout from "../Layout/DashboardLayout/DashboardLayout";
 import Home from "../Pages/Home/Home";
@@ -19,7 +19,10 @@ const router = createBrowserRouter([
     path: "/",
     element: <Main></Main>,
     children: [
-      { path: "/", element: <Home></Home> },
+      {
+        index: true,
+        element: <Navigate to="/dashboard/godown" replace />,
+      },
       { path: "/login", element: <Login></Login> },
       { path: "/signup", element: <SignUp></SignUp> },
       {
@@ -36,6 +39,10 @@ const router = createBrowserRouter([
       </PrivateRoute>
     ),
     children: [
+      {
+        index: true,
+        element: <Navigate to="/dashboard/godown" replace />,
+      },
       {
         path: "/dashboard/add-company",
         element: <Company></Company>,

@@ -32,7 +32,7 @@ export default function SalesList() {
   const fetchSales = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/sale?page=${page}&limit=${perPage}`
+        `https://gazi-tiles-backend.vercel.app/api/sale?page=${page}&limit=${perPage}`
       );
       setSales(res.data.sales);
       setTotalPages(res.data.totalPages);

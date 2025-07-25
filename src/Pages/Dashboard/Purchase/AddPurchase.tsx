@@ -39,7 +39,9 @@ const AddPurchase = ({ onAdded }: { onAdded: () => void }) => {
   } = useQuery<ProductOption[]>({
     queryKey: ["products"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:5000/api/product/all");
+      const res = await axios.get(
+        "https://gazi-tiles-backend.vercel.app/api/product/all"
+      );
       return res.data.products;
     },
   });
@@ -54,7 +56,7 @@ const AddPurchase = ({ onAdded }: { onAdded: () => void }) => {
   const { mutate: addPurchase, isPending } = useMutation({
     mutationFn: async (newPurchase: FormValues) => {
       const res = await axios.post(
-        "http://localhost:5000/api/purchase/create",
+        "https://gazi-tiles-backend.vercel.app/api/purchase/create",
         newPurchase
       );
       return res.data;

@@ -14,7 +14,9 @@ interface Props {
 }
 
 const fetchCompanies = async (): Promise<Company[]> => {
-  const res = await axios.get("http://localhost:5000/api/company/all");
+  const res = await axios.get(
+    "https://gazi-tiles-backend.vercel.app/api/company/all"
+  );
   return res.data.companies;
 };
 
@@ -29,10 +31,13 @@ const AddProduct = ({ refetch }: Props) => {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      return axios.post("http://localhost:5000/api/product/create", {
-        company: selectedCompany?.company,
-        product_code: productCode,
-      });
+      return axios.post(
+        "https://gazi-tiles-backend.vercel.app/api/product/create",
+        {
+          company: selectedCompany?.company,
+          product_code: productCode,
+        }
+      );
     },
     onSuccess: () => {
       toast.success("✅ Product added successfully");

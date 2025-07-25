@@ -19,7 +19,9 @@ const Store = () => {
   useEffect(() => {
     const fetchStore = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/store/all");
+        const res = await axios.get(
+          "https://gazi-tiles-backend.vercel.app/api/store/all"
+        );
         setStoreData(res.data.data);
         setFilteredData(res.data.data);
       } catch (err) {
