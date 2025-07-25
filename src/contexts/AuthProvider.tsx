@@ -15,7 +15,7 @@ import type {
   User,
   UserCredential,
   Auth,
-  AuthProvider as FirebaseAuthProvider,
+  // AuthProvider as FirebaseAuthProvider, // Removed unused export
   PhoneAuthCredential,
 } from "firebase/auth";
 import app from "../firebase/firebase.config";

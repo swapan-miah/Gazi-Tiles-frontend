@@ -78,7 +78,7 @@ const AddProduct = ({ refetch }: Props) => {
           }
           onChange={(option) => {
             if (option) {
-              setSelectedCompany(option.fullData);
+              setSelectedCompany((option as any).fullData);
             } else {
               setSelectedCompany(null);
             }
@@ -102,9 +102,9 @@ const AddProduct = ({ refetch }: Props) => {
       <button
         type="submit"
         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
-        disabled={mutation.isLoading}
+        disabled={mutation.status === "pending"}
       >
-        {mutation.isLoading ? "Adding..." : "Add Product"}
+        {mutation.status === "pending" ? "Adding..." : "Add Product"}
       </button>
     </form>
   );

@@ -35,7 +35,7 @@ const AddPurchase = ({ onAdded }: { onAdded: () => void }) => {
   const {
     data: productOptionsData,
     isLoading,
-    error,
+    // error, // Removed unused variable
   } = useQuery<ProductOption[]>({
     queryKey: ["products"],
     queryFn: async () => {

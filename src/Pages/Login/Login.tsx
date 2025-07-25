@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { AuthContext } from "../../contexts/AuthProvider";
 import type { AuthContextType } from "../../contexts/AuthProvider";
@@ -18,17 +18,16 @@ const Login: React.FC = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormInputs>();
-  const { signIn, GoogleSignIn } = useContext(AuthContext) as AuthContextType;
+  const { signIn } = useContext(AuthContext) as AuthContextType;
   const [loginError, setLoginError] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false); // State to toggle password visibility
-  const location = useLocation();
+  // const location = useLocation(); // Removed unused variable
   const navigate = useNavigate();
 
   const handleLogin: SubmitHandler<LoginFormInputs> = (data) => {
     setLoginError("");
     signIn(data.email, data.password)
-      .then((result: { user: unknown }) => {
-        const user = result.user;
+      .then(() => {
         toast.success("User Login Successfully");
         navigate("/dashboard");
       })

@@ -1,15 +1,15 @@
-import { useContext, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
-import { AuthContext } from "../../contexts/AuthProvider";
-import useAdmin from "../../hooks/useRole";
+import { useState } from "react";
+import { Outlet } from "react-router-dom";
+// import { AuthContext } from "../../contexts/AuthProvider"; // Removed unused import
+// import useAdmin from "../../hooks/useRole"; // Removed unused import
 import Header from "../../Components/Dashboard/Header";
 import Sidebar from "../../Components/Dashboard/Sidebar";
 
 const DashboardLayout = () => {
-  const { user } = useContext(AuthContext) || {};
-  const email = user && typeof user.email === "string" ? user.email : undefined;
-  const [isAdmin] = useAdmin(email);
-  const navigate = useNavigate();
+  // const { user } = useContext(AuthContext) || {}; // Removed unused variable
+  // const email = user && typeof user.email === "string" ? user.email : undefined; // Removed unused variable
+  // const [isAdmin] = useAdmin(email); // Removed unused variable
+  // const navigate = useNavigate(); // Removed unused variable
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSidebarToggle = () => setSidebarOpen((open) => !open);

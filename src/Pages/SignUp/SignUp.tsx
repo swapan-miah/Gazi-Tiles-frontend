@@ -6,6 +6,7 @@ import { getAuth, sendEmailVerification } from "firebase/auth";
 import Swal from "sweetalert2";
 import app from "../../firebase/firebase.config";
 import { AuthContext } from "../../contexts/AuthProvider";
+import type { AuthContextType } from "../../contexts/AuthProvider";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 const SignUp = () => {
@@ -15,7 +16,7 @@ const SignUp = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const { createUser, updateUser } = useContext(AuthContext);
+  const { createUser, updateUser } = useContext(AuthContext) as AuthContextType;
   const [signUpError, setSignUpError] = useState("");
   const [showPassword, setShowPassword] = useState(false); // New state for password visibility
   const navigate = useNavigate();
@@ -40,28 +41,34 @@ const SignUp = () => {
     });
   };
 
-  const handleSignUp = (data) => {
+  type SignUpFormData = {
+    name: string;
+    email: string;
+    password: string;
+  };
+  const handleSignUp: (data: SignUpFormData) => void = (data) => {
     createUser(data.email, data.password)
-      .then((result) => {
-        const user = result.user;
+      .then(() => {
         toast.success("User Created Successfully");
         const userInfo = { displayName: data.name };
-        sendEmailVerification(auth.currentUser).then(() => {
-          emailVerifyMessage();
-        });
+        if (auth.currentUser) {
+          sendEmailVerification(auth.currentUser).then(() => {
+            emailVerifyMessage();
+          });
+        }
         updateUser(userInfo)
           .then(() => {
             saveUser(data.name, data.email);
           })
-          .catch((err) => console.log(err));
+          .catch((err: any) => console.log(err));
       })
-      .catch((error) => {
+      .catch((error: any) => {
         console.log(error);
         setSignUpError("This email is already in use by another account");
       });
   };
 
-  const saveUser = (name, email) => {
+  const saveUser = (name: string, email: string) => {
     const user = { name, email };
     const key = import.meta.env.VITE_Front_Backend_Key;
     fetch("https://isoft4.washingmachinerepairqa.com/users", {
@@ -92,7 +99,7 @@ const SignUp = () => {
           Create your account to get started.
         </p>
         <form
-          onSubmit={handleSubmit(handleSignUp)}
+          onSubmit={handleSubmit(handleSignUp as any)}
           className="w-full space-y-4"
         >
           <div>
