@@ -1,11 +1,5 @@
-import React, { useContext, useState } from "react";
-import {
-  Link,
-  NavLink,
-  Outlet,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import { useContext, useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthProvider";
 import useAdmin from "../../hooks/useRole";
 import Header from "../../Components/Dashboard/Header";
@@ -16,7 +10,6 @@ const DashboardLayout = () => {
   const email = user && typeof user.email === "string" ? user.email : undefined;
   const [isAdmin] = useAdmin(email);
   const navigate = useNavigate();
-  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSidebarToggle = () => setSidebarOpen((open) => !open);

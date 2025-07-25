@@ -1,5 +1,5 @@
-import React, { useContext, useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useContext, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { getAuth, sendEmailVerification } from "firebase/auth";

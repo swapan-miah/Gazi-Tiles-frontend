@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
-import type { SubmitHandler, FieldValues } from "react-hook-form";
+import type { SubmitHandler } from "react-hook-form";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { AuthContext } from "../../contexts/AuthProvider";
@@ -23,9 +23,6 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false); // State to toggle password visibility
   const location = useLocation();
   const navigate = useNavigate();
-
-  const from =
-    (location.state as { from?: { pathname: string } })?.from?.pathname || "/";
 
   const handleLogin: SubmitHandler<LoginFormInputs> = (data) => {
     setLoginError("");

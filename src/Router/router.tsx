@@ -1,7 +1,6 @@
-import { createBrowserRouter, Link, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Main from "../Layout/Main/Main";
 import DashboardLayout from "../Layout/DashboardLayout/DashboardLayout";
-import Home from "../Pages/Home/Home";
 import PrivateRoute from "./PrivateRoute/PrivateRoute";
 import Login from "../Pages/Login/Login";
 import SignUp from "../Pages/SignUp/SignUp";

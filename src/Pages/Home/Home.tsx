@@ -1,10 +1,3 @@
-import React, { useContext } from "react";
-import Login from "../Login/Login";
-import { AuthContext } from "../../contexts/AuthProvider";
-import useRole from "../../hooks/useRole";
-import Loading from "../../Components/Loading/Loading";
-import { NavLink } from "react-router-dom";
-
 const Home = () => {
   // const { user } = useContext(AuthContext);
   // const [role, loading] = useRole(user?.email);
