@@ -59,7 +59,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Email/password sign in
   const signIn = (email: string, password: string) => {
-    setLoading(true);
+    setLoading(false);
     return signInWithEmailAndPassword(auth, email, password);
   };
 

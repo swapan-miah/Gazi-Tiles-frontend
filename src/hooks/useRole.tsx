@@ -11,10 +11,11 @@ function useRole(email: string | undefined): [string | null, boolean] {
       return;
     }
     // Replace with your actual API call or logic
-    fetch(`https://isoft4.washingmachinerepairqa.com/users/user/${email}`)
+    fetch(`http://localhost:5000/api/users/email/${email}`)
       .then((res) => res.json())
       .then((data) => {
-        setRole(data.role);
+        console.log("Fetched user data:", data);
+        setRole(data.user?.role || null);
         setLoading(false);
       })
       .catch(() => {
@@ -22,6 +23,8 @@ function useRole(email: string | undefined): [string | null, boolean] {
         setLoading(false);
       });
   }, [email]);
+
+  console.log(role, loading);
 
   return [role, loading];
 }

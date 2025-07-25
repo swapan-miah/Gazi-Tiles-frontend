@@ -2,12 +2,13 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 
 const navItems = [
-  { name: "Add Company", path: "/dashboard/add-company", icon: "business" },
-  { name: "Add Product", path: "/dashboard/add-product", icon: "add_box" },
-  { name: "Purchase", path: "/dashboard/purchase", icon: "shopping_cart" },
-  { name: "Stock", path: "/dashboard/stock", icon: "inventory" },
-  { name: "Sell", path: "/dashboard/sell", icon: "point_of_sale" },
-  { name: "Godown", path: "/dashboard/godown", icon: "warehouse" },
+  { name: "Add Company", path: "/dashboard/add-company" },
+  { name: "Add Product", path: "/dashboard/add-product" },
+  { name: "Purchase Form", path: "/dashboard/purchase-form" },
+  { name: "Stock", path: "/dashboard/stock" },
+  { name: "Sales Form", path: "/dashboard/sale-form" },
+  { name: "Sales History", path: "/dashboard/sales-history" },
+  { name: "Godown", path: "/dashboard/godown" },
 ];
 
 interface SidebarProps {
@@ -50,7 +51,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => (
             }
             onClick={onClose}
           >
-            <span className="material-icons text-lg">{item.icon}</span>
             <span className="truncate">{item.name}</span>
           </NavLink>
         ))}
