@@ -28,7 +28,7 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
   };
 
   return (
-    <header className="backdrop-blur-md bg-white/80 shadow rounded-xl mx-2 sm:mx-4 mt-2 sm:mt-4 mb-2 px-4 sm:px-8 py-2 sm:py-3 flex items-center justify-between border border-gray-100 z-50 relative">
+    <header className="backdrop-blur-md bg-white/80 shadow md:rounded-xl  sm:mx-4 mt-2 sm:mt-4 mb-2 px-4 sm:px-8  sm:py-3 flex items-center justify-between border border-gray-100 z-50 relative">
       <div className="flex items-center gap-2 sm:gap-4">
         <button
           className="sm:hidden mr-2 p-2 rounded-lg bg-gray-100 hover:bg-gray-200 shadow transition"

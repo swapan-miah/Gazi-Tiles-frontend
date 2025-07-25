@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 interface Product {
   product_code: string;
@@ -8,7 +9,7 @@ interface Product {
   feet: number;
 }
 
-interface ProductItem {
+interface ProductEntry {
   product_code: string;
   store_caton: number;
   store_feet: number;
@@ -17,78 +18,143 @@ interface ProductItem {
 }
 
 const SaleForm: React.FC = () => {
+  const navigate = useNavigate();
+
   const [customer, setCustomer] = useState({
     name: "",
     address: "",
     mobile: "",
   });
+
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [selectedCode, setSelectedCode] = useState("");
-  const [products, setProducts] = useState<ProductItem[]>([]);
+  const [products, setProducts] = useState<ProductEntry[]>([]);
+  const [invoiceNumber, setInvoiceNumber] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     axios
       .get("http://localhost:5000/api/store/all")
       .then((res) => setAllProducts(res.data.data))
       .catch(() => toast.error("Failed to load product list"));
+
+    axios
+      .get("http://localhost:5000/api/invoice/next-invoice")
+      .then((res) => {
+        setInvoiceNumber(res.data.invoice_number ?? 1);
+      })
+      .catch(() => toast.error("Failed to fetch invoice number"));
   }, []);
 
   const handleAddProduct = () => {
-    if (!selectedCode) return toast.error("Please select a product");
+    if (!selectedCode) {
+      toast.error("Please select a product");
+      return;
+    }
 
-    const found = allProducts.find((p) => p.product_code === selectedCode);
-    if (!found) return toast.error("Invalid product");
+    if (products.find((p) => p.product_code === selectedCode)) {
+      toast.error("Product already added");
+      return;
+    }
 
-    const already = products.find((p) => p.product_code === selectedCode);
-    if (already) return toast.error("Already added");
+    const productInfo = allProducts.find(
+      (p) => p.product_code === selectedCode
+    );
+    if (!productInfo) {
+      toast.error("Invalid product code");
+      return;
+    }
 
     setProducts((prev) => [
       ...prev,
       {
-        product_code: found.product_code,
-        store_caton: found.caton,
-        store_feet: found.feet,
+        product_code: productInfo.product_code,
+        store_caton: productInfo.caton,
+        store_feet: productInfo.feet,
         sell_caton: 0,
         sell_feet: 0,
       },
     ]);
+    setSelectedCode("");
+  };
+
+  const handleRemoveProduct = (code: string) => {
+    setProducts((prev) => prev.filter((p) => p.product_code !== code));
+  };
+
+  const handleChangeSellQty = (
+    code: string,
+    field: "sell_caton" | "sell_feet",
+    value: number
+  ) => {
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.product_code === code
+          ? {
+              ...p,
+              [field]: Math.max(
+                0,
+                Math.min(
+                  value,
+                  field === "sell_caton" ? p.store_caton : p.store_feet
+                )
+              ),
+            }
+          : p
+      )
+    );
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
+
+    // Validate customer info
     if (!customer.name || !customer.address || !customer.mobile) {
-      return toast.error("Please fill in all customer fields");
+      toast.error("Please fill all customer details");
+      return;
     }
 
-    if (products.length === 0)
-      return toast.error("Please add at least one product");
+    if (products.length === 0) {
+      toast.error("Please add at least one product");
+      return;
+    }
 
-    const invalid = products.find(
-      (p) => p.sell_caton > p.store_caton || p.sell_feet > p.store_feet
-    );
-    if (invalid) return toast.error("Sell quantity exceeds available stock");
+    for (const p of products) {
+      if (p.sell_caton <= 0 && p.sell_feet <= 0) {
+        toast.error("Sell quantity must be > 0 for all products");
+        return;
+      }
+      if (p.sell_caton > p.store_caton || p.sell_feet > p.store_feet) {
+        toast.error(
+          `Sell quantity exceeds available stock for ${p.product_code}`
+        );
+        return;
+      }
+    }
 
-    // ✅ নতুন validation: sell_caton বা sell_feet এর যেকোনো একটি > 0 হতে হবে
-    const allZero = products.some((p) => p.sell_caton <= 0 && p.sell_feet <= 0);
-    if (allZero)
-      return toast.error(
-        "Each product must have sell caton or sell feet greater than 0"
-      );
-
-    try {
-      const saleData = {
-        customer,
-        date: new Date().toISOString().split("T")[0],
-        products: products.map(({ product_code, sell_caton, sell_feet }) => ({
+    const payload = {
+      customer,
+      products: products.map(
+        ({ product_code, sell_caton, sell_feet, store_caton, store_feet }) => ({
           product_code,
           sell_caton,
           sell_feet,
-        })),
-      };
+          store_caton,
+          store_feet,
+        })
+      ),
+      date: new Date().toISOString().slice(0, 10),
+      invoice_number: invoiceNumber,
+    };
 
+    setIsSubmitting(true);
+
+    try {
       const promise = axios.post(
         "http://localhost:5000/api/sale/create",
-        saleData
+        payload
       );
+
       toast.promise(promise, {
         loading: "Processing sale...",
         success: "Sale successful!",
@@ -96,112 +162,80 @@ const SaleForm: React.FC = () => {
       });
 
       await promise;
-      setProducts([]);
+
+      // Reset form
       setCustomer({ name: "", address: "", mobile: "" });
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Server error");
+      setProducts([]);
+      setInvoiceNumber((prev) => (prev ?? 0) + 1);
+
+      // Redirect success page
+      navigate("/dashboard/sales-history");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Server error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6 bg-white rounded-lg shadow-md space-y-6">
-      <h2 className="text-2xl font-semibold text-center">
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded shadow space-y-6">
+      <h2 className="text-2xl font-semibold text-center mb-6">
         🧾 Sales Entry Form
       </h2>
 
-      {/* Customer Info */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div>
-          <label
-            htmlFor="customer-name"
-            className="block mb-1 font-medium text-gray-700"
-          >
-            Customer Name
-          </label>
-          <input
-            id="customer-name"
-            type="text"
-            placeholder="Enter name"
-            value={customer.name}
-            onChange={(e) => setCustomer({ ...customer, name: e.target.value })}
-            className="border px-3 py-2 rounded w-full"
-          />
-        </div>
+        {["name", "address", "mobile"].map((field) => (
+          <div key={field}>
+            <label className="block mb-1 font-medium capitalize">{`Customer ${field}`}</label>
+            <input
+              type="text"
+              value={(customer as any)[field]}
+              onChange={(e) =>
+                setCustomer((prev) => ({ ...prev, [field]: e.target.value }))
+              }
+              className="border px-3 py-2 rounded w-full"
+              placeholder={`Enter ${field}`}
+            />
+          </div>
+        ))}
 
         <div>
-          <label
-            htmlFor="customer-address"
-            className="block mb-1 font-medium text-gray-700"
-          >
-            Customer Address
-          </label>
+          <label className="block mb-1 font-medium">Invoice Number</label>
           <input
-            id="customer-address"
-            type="text"
-            placeholder="Enter address"
-            value={customer.address}
-            onChange={(e) =>
-              setCustomer({ ...customer, address: e.target.value })
-            }
-            className="border px-3 py-2 rounded w-full"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="customer-mobile"
-            className="block mb-1 font-medium text-gray-700"
-          >
-            Customer Mobile
-          </label>
-          <input
-            id="customer-mobile"
-            type="text"
-            placeholder="Enter mobile"
-            value={customer.mobile}
-            onChange={(e) =>
-              setCustomer({ ...customer, mobile: e.target.value })
-            }
-            className="border px-3 py-2 rounded w-full"
+            type="number"
+            value={invoiceNumber ?? ""}
+            readOnly
+            className="border px-3 py-2 rounded w-full bg-gray-100 cursor-not-allowed"
           />
         </div>
       </div>
 
-      {/* Product Select */}
-      <div>
-        <label
-          htmlFor="product-code"
-          className="block mb-1 font-medium text-gray-700"
+      <div className="flex gap-4 items-center">
+        <select
+          value={selectedCode}
+          onChange={(e) => setSelectedCode(e.target.value)}
+          className="border px-3 py-2 rounded flex-grow"
+          disabled={isSubmitting}
         >
-          Select Product
-        </label>
-        <div className="flex items-center gap-4">
-          <select
-            id="product-code"
-            value={selectedCode}
-            onChange={(e) => setSelectedCode(e.target.value)}
-            className="border px-3 py-2 rounded w-full"
-          >
-            <option value="">-- Select Product Code --</option>
-            {allProducts.map((p) => (
-              <option key={p.product_code} value={p.product_code}>
-                {p.product_code}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={handleAddProduct}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-          >
-            Add Product
-          </button>
-        </div>
+          <option value="">-- Select Product Code --</option>
+          {allProducts.map((p) => (
+            <option key={p.product_code} value={p.product_code}>
+              {p.product_code}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={handleAddProduct}
+          disabled={isSubmitting}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Add Product
+        </button>
       </div>
 
-      {/* Product Table */}
       {products.length > 0 && (
         <div className="overflow-x-auto">
-          <table className="w-full border border-collapse text-sm">
+          <table className="w-full border border-collapse text-sm text-center">
             <thead className="bg-gray-100">
               <tr>
                 <th className="border px-3 py-2">#</th>
@@ -215,65 +249,52 @@ const SaleForm: React.FC = () => {
             </thead>
             <tbody>
               {products.map((p, i) => (
-                <tr key={p.product_code} className="text-center">
-                  <td className="border px-2">{i + 1}</td>
-                  <td className="border px-2">{p.product_code}</td>
-                  <td className="border px-2">{p.store_caton}</td>
-                  <td className="border px-2">{p.store_feet}</td>
-                  <td className="border px-2">
-                    <label className="sr-only" htmlFor={`sell-caton-${i}`}>
-                      Sell Caton
-                    </label>
+                <tr key={p.product_code}>
+                  <td className="border px-2 py-1">{i + 1}</td>
+                  <td className="border px-2 py-1">{p.product_code}</td>
+                  <td className="border px-2 py-1">{p.store_caton}</td>
+                  <td className="border px-2 py-1">{p.store_feet}</td>
+                  <td className="border px-2 py-1">
                     <input
-                      id={`sell-caton-${i}`}
                       type="number"
-                      value={p.sell_caton}
                       min={0}
                       max={p.store_caton}
-                      onWheel={(e) => e.currentTarget.blur()}
+                      value={p.sell_caton}
                       onChange={(e) =>
-                        setProducts((prev) =>
-                          prev.map((item) =>
-                            item.product_code === p.product_code
-                              ? { ...item, sell_caton: +e.target.value }
-                              : item
-                          )
+                        handleChangeSellQty(
+                          p.product_code,
+                          "sell_caton",
+                          Number(e.target.value)
                         )
                       }
-                      className="w-20 text-right border px-1 py-1"
+                      className="w-20 px-1 py-1 border rounded text-right"
+                      onWheel={(e) => e.currentTarget.blur()}
+                      disabled={isSubmitting}
                     />
                   </td>
-                  <td className="border px-2">
-                    <label className="sr-only" htmlFor={`sell-feet-${i}`}>
-                      Sell Feet
-                    </label>
+                  <td className="border px-2 py-1">
                     <input
-                      id={`sell-feet-${i}`}
                       type="number"
-                      value={p.sell_feet}
                       min={0}
                       max={p.store_feet}
-                      onWheel={(e) => e.currentTarget.blur()}
+                      value={p.sell_feet}
                       onChange={(e) =>
-                        setProducts((prev) =>
-                          prev.map((item) =>
-                            item.product_code === p.product_code
-                              ? { ...item, sell_feet: +e.target.value }
-                              : item
-                          )
+                        handleChangeSellQty(
+                          p.product_code,
+                          "sell_feet",
+                          Number(e.target.value)
                         )
                       }
-                      className="w-20 text-right border px-1 py-1"
+                      className="w-20 px-1 py-1 border rounded text-right"
+                      onWheel={(e) => e.currentTarget.blur()}
+                      disabled={isSubmitting}
                     />
                   </td>
-                  <td className="border px-2">
+                  <td className="border px-2 py-1">
                     <button
-                      onClick={() =>
-                        setProducts((prev) =>
-                          prev.filter((x) => x.product_code !== p.product_code)
-                        )
-                      }
-                      className="text-red-600 hover:underline"
+                      onClick={() => handleRemoveProduct(p.product_code)}
+                      disabled={isSubmitting}
+                      className="text-red-600 hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Remove
                     </button>
@@ -285,13 +306,13 @@ const SaleForm: React.FC = () => {
         </div>
       )}
 
-      {/* Submit Button */}
       <div className="text-center">
         <button
           onClick={handleSubmit}
-          className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition"
+          disabled={isSubmitting}
+          className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Submit Sale
+          {isSubmitting ? "Submitting..." : "Submit Sale"}
         </button>
       </div>
     </div>
