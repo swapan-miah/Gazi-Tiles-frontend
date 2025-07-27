@@ -108,23 +108,21 @@ const PurchaseHistory = ({ refresh }: { refresh: boolean }) => {
       <table className="w-full border text-sm">
         <thead className="bg-gray-100">
           <tr>
-            <th className="border p-2">Invoice</th>
+            <th className="border p-2">Sl</th>
             <th className="border p-2">Product Code</th>
             <th className="border p-2">Company</th>
             <th className="border p-2">Caton</th>
-            <th className="border p-2">Feet</th>
             <th className="border p-2">Date</th>
           </tr>
         </thead>
         <tbody>
           {data.map((item: any, idx: number) => (
-            <tr key={idx} className="text-center">
-              <td className="border p-2">{item.invoice_number}</td>
+            <tr key={idx}>
+              <td className="border p-2">{idx + 1}</td>
               <td className="border p-2">{item.product_code}</td>
               <td className="border p-2">{item.company}</td>
-              <td className="border p-2">{item.caton}</td>
-              <td className="border p-2">{item.feet}</td>
-              <td className="border p-2">{item.date}</td>
+              <td className="border p-2 text-right">{item.caton}</td>
+              <td className="border p-2 text-right">{item.date}</td>
             </tr>
           ))}
         </tbody>
