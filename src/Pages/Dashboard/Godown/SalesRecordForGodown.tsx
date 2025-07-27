@@ -12,7 +12,9 @@ const SalesRecordForGodown = ({ date }: { date: string }) => {
     queryKey: ["sales-record", date],
     queryFn: async () => {
       const res = await fetch(
-        `https://gazi-tiles-backend.vercel.app/api/sale/group/custom-date?date=${date}`
+        `${
+          import.meta.env.VITE_Basic_Api
+        }/api/sale/group/custom-date?date=${date}`
       );
       if (!res.ok) {
         throw new Error("Failed to fetch sales records");

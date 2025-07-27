@@ -12,7 +12,9 @@ const PurchaseHistory = ({ refresh }: { refresh: boolean }) => {
   const fetchHistory = async () => {
     try {
       const res = await axios.get(
-        `https://gazi-tiles-backend.vercel.app/api/purchase/history?page=${page}&limit=${limit}`
+        `${
+          import.meta.env.VITE_Basic_Api
+        }/api/purchase/history?page=${page}&limit=${limit}`
       );
       setData(res.data.data);
       setTotal(res.data.total);

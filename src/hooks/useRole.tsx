@@ -11,7 +11,7 @@ function useRole(email: string | undefined): [string | null, boolean] {
       return;
     }
     // Replace with your actual API call or logic
-    fetch(`https://gazi-tiles-backend.vercel.app/api/users/email/${email}`)
+    fetch(`${import.meta.env.VITE_Basic_Api}/api/users/email/${email}`)
       .then((res) => res.json())
       .then((data) => {
         console.log("Fetched user data:", data);

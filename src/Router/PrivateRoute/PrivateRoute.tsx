@@ -15,14 +15,22 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
 
   // যদি AuthContext এখনো লোড না হয়
   if (!auth) {
-    return <progress className="progress w-56"></progress>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-12 h-12 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   const { user, loading } = auth;
 
   // user না থাকলে বা auth লোড না হলে progress দেখান
   if (loading || !user) {
-    return <progress className="progress w-56"></progress>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-12 h-12 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   // role hook - email null হলে undefined পাঠানো হবে
@@ -30,7 +38,11 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
 
   // role লোড না হলে progress
   if (roleLoading) {
-    return <progress className="progress w-56"></progress>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-12 h-12 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   // role থাকলে চাইল্ড রেন্ডার করুন

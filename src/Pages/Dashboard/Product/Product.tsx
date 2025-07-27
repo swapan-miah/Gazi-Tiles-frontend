@@ -7,11 +7,14 @@ export interface IProduct {
   _id: string;
   company: string;
   product_code: string;
+  height: number;
+  width: number;
+  per_caton_to_pcs: number;
 }
 
 const fetchProducts = async () => {
   const res = await axios.get(
-    "https://gazi-tiles-backend.vercel.app/api/product/all"
+    `${import.meta.env.VITE_Basic_Api}/api/product/all`
   );
   return res.data.products;
 };
@@ -31,7 +34,7 @@ const Product = () => {
   return (
     <div className="p-4">
       <AddProduct refetch={refetch} />
-      <ProductList products={products} />
+      <ProductList products={products} refetch={refetch} />
     </div>
   );
 };

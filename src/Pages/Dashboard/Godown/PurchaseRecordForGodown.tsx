@@ -14,7 +14,9 @@ const PurchaseRecordForGodown = ({ date }: { date: string }) => {
     queryKey: ["purchase-record", date],
     queryFn: async () => {
       const res = await fetch(
-        `https://gazi-tiles-backend.vercel.app/api/purchase/group/custom-date?date=${date}`
+        `${
+          import.meta.env.VITE_Basic_Api
+        }/api/purchase/group/custom-date?date=${date}`
       );
       if (!res.ok) {
         throw new Error("Failed to fetch purchase records");

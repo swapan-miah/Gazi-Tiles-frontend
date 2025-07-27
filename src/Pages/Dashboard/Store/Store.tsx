@@ -20,7 +20,7 @@ const Store = () => {
     const fetchStore = async () => {
       try {
         const res = await axios.get(
-          "https://gazi-tiles-backend.vercel.app/api/store/all"
+          `${import.meta.env.VITE_Basic_Api}/api/store/all`
         );
         setStoreData(res.data.data);
         setFilteredData(res.data.data);

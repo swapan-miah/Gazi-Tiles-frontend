@@ -34,12 +34,12 @@ const SaleForm: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get("https://gazi-tiles-backend.vercel.app/api/store/all")
+      .get(`${import.meta.env.VITE_Basic_Api}/api/store/all`)
       .then((res) => setAllProducts(res.data.data))
       .catch(() => toast.error("Failed to load product list"));
 
     axios
-      .get("https://gazi-tiles-backend.vercel.app/api/invoice/next-invoice")
+      .get(`${import.meta.env.VITE_Basic_Api}/api/invoice/next-invoice`)
       .then((res) => {
         setInvoiceNumber(res.data.invoice_number ?? 1);
       })
@@ -151,7 +151,7 @@ const SaleForm: React.FC = () => {
 
     try {
       const promise = axios.post(
-        "https://gazi-tiles-backend.vercel.app/api/sale/create",
+        `${import.meta.env.VITE_Basic_Api}/api/sale/create`,
         payload
       );
 
