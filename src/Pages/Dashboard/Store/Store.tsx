@@ -61,6 +61,11 @@ const Store = () => {
             remainingPieces = per_caton_to_pcs + remainingPieces;
           }
 
+          if (remainingPieces == per_caton_to_pcs) {
+            fullCartons += 1;
+            remainingPieces = 0;
+          }
+
           return {
             ...item,
             fullCartons: Math.max(fullCartons, 0),
@@ -73,10 +78,11 @@ const Store = () => {
         setErrorMessage("");
       } catch (err) {
         const axiosError = err as AxiosError;
-        const message =
-          axiosError.response?.data?.message ||
-          axiosError.message ||
-          "❌ Failed to fetch store data";
+        let message = axiosError.message || "❌ Failed to fetch store data";
+        const data = axiosError.response?.data;
+        if (data && typeof data === "object" && "message" in data) {
+          message = (data as { message: string }).message || message;
+        }
         setErrorMessage(message);
         toast.error(message);
       } finally {

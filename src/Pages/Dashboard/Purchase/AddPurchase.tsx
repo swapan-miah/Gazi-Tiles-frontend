@@ -4,6 +4,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Select from "react-select";
 
+
 interface Product {
   _id: string;
   product_code: string;
@@ -37,6 +38,7 @@ interface AddPurchaseProps {
 }
 
 const AddPurchase = ({ onAdded }: AddPurchaseProps) => {
+
   const { register, handleSubmit, reset, setValue } = useForm<FormValues>();
 
   // ✅ Product fetch

@@ -12,6 +12,7 @@ import Store from "../Pages/Dashboard/Store/Store";
 import SaleForm from "../Pages/Dashboard/SaleForm/SaleForm";
 import SalesList from "../Pages/Dashboard/SaleList/SaleList";
 import Godown from "../Pages/Dashboard/Godown/Godown";
+import UpdatePurchase from "../Pages/Dashboard/Purchase/UpdatePurchase";
 
 const router = createBrowserRouter([
   {
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
       {
         path: "/dashboard/purchase-form",
         element: <Purchase></Purchase>,
+      },
+      {
+        path: "/dashboard/purchase-update",
+        element: <UpdatePurchase></UpdatePurchase>,
       },
       {
         path: "/dashboard/stock",

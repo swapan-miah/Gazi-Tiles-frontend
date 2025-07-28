@@ -1,8 +1,10 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const PurchaseHistory = ({ refresh }: { refresh: boolean }) => {
+  const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [limit, setLimit] = useState(20);
   const [page, setPage] = useState(1);
@@ -113,6 +115,7 @@ const PurchaseHistory = ({ refresh }: { refresh: boolean }) => {
             <th className="border p-2">Company</th>
             <th className="border p-2">Caton</th>
             <th className="border p-2">Date</th>
+            <th className="border p-2">Edit</th>
           </tr>
         </thead>
         <tbody>
@@ -123,6 +126,18 @@ const PurchaseHistory = ({ refresh }: { refresh: boolean }) => {
               <td className="border p-2">{item.company}</td>
               <td className="border p-2 text-right">{item.caton}</td>
               <td className="border p-2 text-right">{item.date}</td>
+              <td className="border p-2 text-center">
+                <button
+                  onClick={() =>
+                    navigate("/dashboard/purchase-update", {
+                      state: { purchase: item },
+                    })
+                  }
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+                >
+                  Edit
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
