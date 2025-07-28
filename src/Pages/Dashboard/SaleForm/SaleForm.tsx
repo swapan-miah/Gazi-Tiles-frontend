@@ -3,38 +3,46 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-interface Product {
+interface StoreProduct {
+  _id: string;
   product_code: string;
-  caton: number;
+  company: string;
   feet: number;
+  height: number;
+  width: number;
+  per_caton_to_pcs: number;
 }
 
-interface ProductEntry {
+interface ISaleProduct {
   product_code: string;
-  store_caton: number;
-  store_feet: number;
   sell_caton: number;
+  sell_pcs: number;
   sell_feet: number;
+  store_feet: number;
+  height: number;
+  width: number;
+  per_caton_to_pcs: number;
+}
+
+interface ISale {
+  invoice_number: number;
+  date: string;
+  products: ISaleProduct[];
 }
 
 const SaleForm: React.FC = () => {
   const navigate = useNavigate();
-
-  const [customer, setCustomer] = useState({
-    name: "",
-    address: "",
-    mobile: "",
-  });
-
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<StoreProduct[]>([]);
   const [selectedCode, setSelectedCode] = useState("");
-  const [products, setProducts] = useState<ProductEntry[]>([]);
+  const [sellCtn, setSellCtn] = useState(0);
+  const [sellPcs, setSellPcs] = useState(0);
   const [invoiceNumber, setInvoiceNumber] = useState<number | null>(null);
+  const [products, setProducts] = useState<ISaleProduct[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     axios
-      .get(`${import.meta.env.VITE_Basic_Api}/api/store/all`)
+      .get(`${import.meta.env.VITE_Basic_Api}/api/store/in-stock/all`)
       .then((res) => setAllProducts(res.data.data))
       .catch(() => toast.error("Failed to load product list"));
 
@@ -47,160 +55,124 @@ const SaleForm: React.FC = () => {
   }, []);
 
   const handleAddProduct = () => {
-    if (!selectedCode) {
-      toast.error("Please select a product");
-      return;
-    }
+    const product = allProducts.find((p) => p.product_code === selectedCode);
+    if (!product) return toast.error("Invalid product selection");
 
-    if (products.find((p) => p.product_code === selectedCode)) {
-      toast.error("Product already added");
-      return;
-    }
+    const { height, width, feet, per_caton_to_pcs, product_code } = product;
 
-    const productInfo = allProducts.find(
-      (p) => p.product_code === selectedCode
+    const areaPerPiece = (height * width) / 144;
+    const totalPieces = feet / areaPerPiece;
+
+    let fullCartons = Math.floor(totalPieces / per_caton_to_pcs);
+    let remainingPieces = Math.round(
+      totalPieces - fullCartons * per_caton_to_pcs
     );
-    if (!productInfo) {
-      toast.error("Invalid product code");
-      return;
+
+    if (remainingPieces < 0) {
+      fullCartons -= 1;
+      remainingPieces = per_caton_to_pcs + remainingPieces;
+    }
+    if (remainingPieces === per_caton_to_pcs) {
+      fullCartons += 1;
+      remainingPieces = 0;
+    }
+
+    // ✅ Extra Validation
+    if (sellCtn <= 0 && sellPcs <= 0) {
+      return toast.error(
+        "Sell caton অথবা sell pcs অন্তত একটি ০ এর বেশি হতে হবে"
+      );
+    }
+
+    if (sellPcs >= per_caton_to_pcs) {
+      return toast.error(`Sell pcs must be less than ${per_caton_to_pcs}`);
+    }
+
+    if (sellCtn > fullCartons) {
+      return toast.error(`Sell caton must be ≤ ${fullCartons}`);
+    }
+
+    if (sellCtn === fullCartons && sellPcs > remainingPieces) {
+      return toast.error(
+        `Only ${remainingPieces} pcs allowed when cartons full`
+      );
+    }
+
+    const sellFeet = areaPerPiece * (sellCtn * per_caton_to_pcs + sellPcs);
+
+    if (products.find((p) => p.product_code === product_code)) {
+      return toast.error("Product already added");
     }
 
     setProducts((prev) => [
       ...prev,
       {
-        product_code: productInfo.product_code,
-        store_caton: productInfo.caton,
-        store_feet: productInfo.feet,
-        sell_caton: 0,
-        sell_feet: 0,
+        product_code,
+        sell_caton: sellCtn,
+        sell_pcs: sellPcs,
+        sell_feet: sellFeet,
+        store_feet: feet,
+        height,
+        width,
+        per_caton_to_pcs,
       },
     ]);
+
     setSelectedCode("");
+    setSellCtn(0);
+    setSellPcs(0);
   };
 
   const handleRemoveProduct = (code: string) => {
     setProducts((prev) => prev.filter((p) => p.product_code !== code));
   };
 
-  const handleChangeSellQty = (
-    code: string,
-    field: "sell_caton" | "sell_feet",
-    value: number
-  ) => {
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.product_code === code
-          ? {
-              ...p,
-              [field]: Math.max(
-                0,
-                Math.min(
-                  value,
-                  field === "sell_caton" ? p.store_caton : p.store_feet
-                )
-              ),
-            }
-          : p
-      )
-    );
-  };
-
   const handleSubmit = async () => {
-    if (isSubmitting) return;
+    if (products.length === 0) return toast.error("Add at least one product");
+    if (!invoiceNumber) return toast.error("Invoice number missing");
 
-    // Validate customer info
-    if (!customer.name || !customer.address || !customer.mobile) {
-      toast.error("Please fill all customer details");
-      return;
-    }
-
-    if (products.length === 0) {
-      toast.error("Please add at least one product");
-      return;
-    }
-
-    for (const p of products) {
-      if (p.sell_caton <= 0 && p.sell_feet <= 0) {
-        toast.error("Sell quantity must be > 0 for all products");
-        return;
-      }
-      if (p.sell_caton > p.store_caton || p.sell_feet > p.store_feet) {
-        toast.error(
-          `Sell quantity exceeds available stock for ${p.product_code}`
-        );
-        return;
-      }
-    }
-
-    const payload = {
-      customer,
-      products: products.map(
-        ({ product_code, sell_caton, sell_feet, store_caton, store_feet }) => ({
-          product_code,
-          sell_caton,
-          sell_feet,
-          store_caton,
-          store_feet,
-        })
-      ),
-      date: new Date().toISOString().slice(0, 10),
+    const payload: ISale = {
       invoice_number: invoiceNumber,
+      date: new Date().toISOString().slice(0, 10),
+      products,
     };
 
-    setIsSubmitting(true);
+    console.log("payload", payload);
 
     try {
+      setIsSubmitting(true);
       const promise = axios.post(
         `${import.meta.env.VITE_Basic_Api}/api/sale/create`,
         payload
       );
-
       toast.promise(promise, {
         loading: "Processing sale...",
-        success: "Sale successful!",
-        error: "Sale failed!",
+        success: "Sale completed",
+        error: "Sale failed",
       });
 
       await promise;
-
-      // Reset form
-      setCustomer({ name: "", address: "", mobile: "" });
       setProducts([]);
       setInvoiceNumber((prev) => (prev ?? 0) + 1);
-
-      // Redirect success page
       navigate("/dashboard/sales-history");
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Server error");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Server error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const currentProduct = allProducts.find(
+    (p) => p.product_code === selectedCode
+  );
+
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded shadow space-y-6">
-      <h2 className="text-2xl font-semibold text-center mb-6">
-        🧾 Sales Entry Form
-      </h2>
+    <div className="max-w-5xl mx-auto p-6 bg-white shadow rounded space-y-6">
+      <h2 className="text-2xl font-semibold text-center">🧾 Sale Entry</h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {["name", "address", "mobile"].map((field) => (
-          <div key={field}>
-            <label className="block mb-1 font-medium capitalize">{`Customer ${field}`}</label>
-            <input
-              type="text"
-              value={(customer as any)[field]}
-              onChange={(e) =>
-                setCustomer((prev) => ({ ...prev, [field]: e.target.value }))
-              }
-              className="border px-3 py-2 rounded w-full"
-              placeholder={`Enter ${field}`}
-            />
-          </div>
-        ))}
-
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
         <div>
-          <label className="block mb-1 font-medium">Invoice Number</label>
+          <label className="block font-medium mb-1">Invoice Number</label>
           <input
             type="number"
             value={invoiceNumber ?? ""}
@@ -210,93 +182,132 @@ const SaleForm: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex gap-4 items-center">
-        <select
-          value={selectedCode}
-          onChange={(e) => setSelectedCode(e.target.value)}
-          className="border px-3 py-2 rounded flex-grow"
-          disabled={isSubmitting}
-        >
-          <option value="">-- Select Product Code --</option>
-          {allProducts.map((p) => (
-            <option key={p.product_code} value={p.product_code}>
-              {p.product_code}
-            </option>
-          ))}
-        </select>
+      <div className="p-4 border rounded space-y-4">
+        <h3 className="text-lg font-medium">Add Product</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+          <div>
+            <label className="block mb-1 font-medium">Product Code</label>
+            <select
+              value={selectedCode}
+              onChange={(e) => setSelectedCode(e.target.value)}
+              className="border px-3 py-2 rounded w-full"
+              disabled={isSubmitting}
+            >
+              <option value="">-- Select --</option>
+              {allProducts.map((p) => (
+                <option key={p.product_code} value={p.product_code}>
+                  {p.product_code}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block mb-1 font-medium">Sell Caton</label>
+            <input
+              type="number"
+              value={sellCtn}
+              onChange={(e) => setSellCtn(Number(e.target.value))}
+              className="border px-3 py-2 rounded w-full"
+              min={0}
+              onWheel={(e) => e.currentTarget.blur()}
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 font-medium">Sell Pcs</label>
+            <input
+              type="number"
+              value={sellPcs}
+              onChange={(e) => setSellPcs(Number(e.target.value))}
+              className="border px-3 py-2 rounded w-full"
+              min={0}
+              onWheel={(e) => e.currentTarget.blur()}
+            />
+          </div>
+        </div>
+
+        {currentProduct && (
+          <div className="text-sm text-gray-600 mt-2">
+            <p>
+              🧱 Size: {currentProduct.height}" x {currentProduct.width}" | Per
+              Caton: {currentProduct.per_caton_to_pcs} pcs
+            </p>
+            <p>📦 Stock: {currentProduct.feet.toFixed(2)} feet</p>
+
+            {/* Breakdown */}
+            {(() => {
+              const areaPerPiece =
+                (currentProduct.height * currentProduct.width) / 144;
+              const totalPieces = currentProduct.feet / areaPerPiece;
+              let fullCartons = Math.floor(
+                totalPieces / currentProduct.per_caton_to_pcs
+              );
+              let remainingPieces = Math.round(
+                totalPieces - fullCartons * currentProduct.per_caton_to_pcs
+              );
+
+              if (remainingPieces < 0) {
+                fullCartons -= 1;
+                remainingPieces =
+                  currentProduct.per_caton_to_pcs + remainingPieces;
+              }
+              if (remainingPieces === currentProduct.per_caton_to_pcs) {
+                fullCartons += 1;
+                remainingPieces = 0;
+              }
+              return (
+                <p>
+                  🧮 Stock Breakdown: {fullCartons} caton & {remainingPieces}{" "}
+                  pcs
+                </p>
+              );
+            })()}
+          </div>
+        )}
+
         <button
           onClick={handleAddProduct}
           disabled={isSubmitting}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
         >
-          Add Product
+          ➕ Add Product
         </button>
       </div>
 
       {products.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="w-full border border-collapse text-sm text-center">
+        <div className="overflow-x-auto border rounded">
+          <table className="w-full border-collapse text-sm text-center mt-4">
             <thead className="bg-gray-100">
               <tr>
-                <th className="border px-3 py-2">#</th>
-                <th className="border px-3 py-2">Product Code</th>
-                <th className="border px-3 py-2">Available Caton</th>
-                <th className="border px-3 py-2">Available Feet</th>
-                <th className="border px-3 py-2">Sell Caton</th>
-                <th className="border px-3 py-2">Sell Feet</th>
-                <th className="border px-3 py-2">Action</th>
+                <th>#</th>
+                <th>Product Code</th>
+                <th>Size</th>
+                <th>Store Feet</th>
+                <th>Sell Caton</th>
+                <th>Sell Pcs</th>
+                <th>Sell Feet</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {products.map((p, i) => (
                 <tr key={p.product_code}>
-                  <td className="border px-2 py-1">{i + 1}</td>
-                  <td className="border px-2 py-1">{p.product_code}</td>
-                  <td className="border px-2 py-1">{p.store_caton}</td>
-                  <td className="border px-2 py-1">{p.store_feet}</td>
-                  <td className="border px-2 py-1">
-                    <input
-                      type="number"
-                      min={0}
-                      max={p.store_caton}
-                      value={p.sell_caton}
-                      onChange={(e) =>
-                        handleChangeSellQty(
-                          p.product_code,
-                          "sell_caton",
-                          Number(e.target.value)
-                        )
-                      }
-                      className="w-20 px-1 py-1 border rounded text-right"
-                      onWheel={(e) => e.currentTarget.blur()}
-                      disabled={isSubmitting}
-                    />
+                  <td>{i + 1}</td>
+                  <td>{p.product_code}</td>
+                  <td>
+                    {p.height}" x {p.width}"
                   </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      type="number"
-                      min={0}
-                      max={p.store_feet}
-                      value={p.sell_feet}
-                      onChange={(e) =>
-                        handleChangeSellQty(
-                          p.product_code,
-                          "sell_feet",
-                          Number(e.target.value)
-                        )
-                      }
-                      className="w-20 px-1 py-1 border rounded text-right"
-                      onWheel={(e) => e.currentTarget.blur()}
-                      disabled={isSubmitting}
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
+                  <td>{p.store_feet.toFixed(2)}</td>
+                  <td>{p.sell_caton}</td>
+                  <td>{p.sell_pcs}</td>
+                  <td>{p.sell_feet.toFixed(2)}</td>
+                  <td>
                     <button
                       onClick={() => handleRemoveProduct(p.product_code)}
-                      disabled={isSubmitting}
-                      className="text-red-600 hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="text-red-600 hover:underline"
                     >
-                      Remove
+                      ❌ Remove
                     </button>
                   </td>
                 </tr>
