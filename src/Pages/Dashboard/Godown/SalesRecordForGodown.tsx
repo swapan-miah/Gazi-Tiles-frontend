@@ -53,6 +53,7 @@ const SalesRecordForGodown = ({ date }: { date: string }) => {
               <td className="border border-gray-400 px-3 py-2 text-right">
                 {item.total_caton}
               </td>
+
               <td className="border border-gray-400 px-3 py-2 text-right">
                 {item.total_feet}
               </td>

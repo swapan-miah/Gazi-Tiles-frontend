@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import Select from "react-select";
 
 interface StoreProduct {
   _id: string;
@@ -77,11 +78,14 @@ const SaleForm: React.FC = () => {
       remainingPieces = 0;
     }
 
-    // ✅ Extra Validation
     if (sellCtn <= 0 && sellPcs <= 0) {
       return toast.error(
         "Sell caton অথবা sell pcs অন্তত একটি ০ এর বেশি হতে হবে"
       );
+    }
+
+    if (!Number.isInteger(sellCtn) || !Number.isInteger(sellPcs)) {
+      return toast.error("Sell caton এবং sell pcs অবশ্যই পূর্ণ সংখ্যা হতে হবে");
     }
 
     if (sellPcs >= per_caton_to_pcs) {
@@ -89,7 +93,7 @@ const SaleForm: React.FC = () => {
     }
 
     if (sellCtn > fullCartons) {
-      return toast.error(`Sell caton must be ≤ ${fullCartons}`);
+      return toast.error(`Sell caton must be less than equal ${fullCartons}`);
     }
 
     if (sellCtn === fullCartons && sellPcs > remainingPieces) {
@@ -187,19 +191,25 @@ const SaleForm: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
           <div>
             <label className="block mb-1 font-medium">Product Code</label>
-            <select
-              value={selectedCode}
-              onChange={(e) => setSelectedCode(e.target.value)}
-              className="border px-3 py-2 rounded w-full"
-              disabled={isSubmitting}
-            >
-              <option value="">-- Select --</option>
-              {allProducts.map((p) => (
-                <option key={p.product_code} value={p.product_code}>
-                  {p.product_code}
-                </option>
-              ))}
-            </select>
+            <Select
+              value={
+                selectedCode
+                  ? {
+                      value: selectedCode,
+                      label: selectedCode,
+                    }
+                  : null
+              }
+              onChange={(option) => setSelectedCode(option?.value || "")}
+              options={allProducts.map((p) => ({
+                value: p.product_code,
+                label: `${p.product_code} (${p.company})`,
+              }))}
+              isDisabled={isSubmitting}
+              placeholder="🔍 Search & select product code"
+              className="w-full"
+              classNamePrefix="react-select"
+            />
           </div>
 
           <div>
@@ -234,8 +244,6 @@ const SaleForm: React.FC = () => {
               Caton: {currentProduct.per_caton_to_pcs} pcs
             </p>
             <p>📦 Stock: {currentProduct.feet.toFixed(2)} feet</p>
-
-            {/* Breakdown */}
             {(() => {
               const areaPerPiece =
                 (currentProduct.height * currentProduct.width) / 144;
@@ -246,7 +254,6 @@ const SaleForm: React.FC = () => {
               let remainingPieces = Math.round(
                 totalPieces - fullCartons * currentProduct.per_caton_to_pcs
               );
-
               if (remainingPieces < 0) {
                 fullCartons -= 1;
                 remainingPieces =
@@ -282,11 +289,12 @@ const SaleForm: React.FC = () => {
               <tr>
                 <th>#</th>
                 <th>Product Code</th>
-                <th>Size</th>
                 <th>Store Feet</th>
+                <th>Size</th>
                 <th>Sell Caton</th>
                 <th>Sell Pcs</th>
                 <th>Sell Feet</th>
+
                 <th>Action</th>
               </tr>
             </thead>
@@ -295,13 +303,14 @@ const SaleForm: React.FC = () => {
                 <tr key={p.product_code}>
                   <td>{i + 1}</td>
                   <td>{p.product_code}</td>
+                  <td>{p.store_feet.toFixed(2)}</td>
                   <td>
                     {p.height}" x {p.width}"
                   </td>
-                  <td>{p.store_feet.toFixed(2)}</td>
                   <td>{p.sell_caton}</td>
                   <td>{p.sell_pcs}</td>
                   <td>{p.sell_feet.toFixed(2)}</td>
+
                   <td>
                     <button
                       onClick={() => handleRemoveProduct(p.product_code)}

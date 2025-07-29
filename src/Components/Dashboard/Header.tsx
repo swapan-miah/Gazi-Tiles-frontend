@@ -51,11 +51,7 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
             />
           </svg>
         </button>
-        <img
-          src="/vite.svg"
-          alt="Logo"
-          className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-white"
-        />
+
         <span className="text-xl sm:text-2xl font-bold text-blue-700 select-none">
           Gazi Tiles
         </span>

@@ -1,33 +1,29 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Dialog } from "@headlessui/react";
+import { useNavigate } from "react-router-dom";
 
 interface Product {
   product_code: string;
   sell_caton: number;
+  sell_pcs: number;
   sell_feet: number;
 }
 
 interface Sale {
   _id: string;
-  customer: {
-    name: string;
-    address: string;
-    mobile: string;
-  };
   products: Product[];
   date: string;
+  invoice_number: number;
 }
 
 export default function SalesList() {
   const [sales, setSales] = useState<Sale[]>([]);
-  const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
-
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [perPage, setPerPage] = useState(20);
   const [gotoPage, setGotoPage] = useState("");
+
+  const navigate = useNavigate();
 
   const fetchSales = async () => {
     try {
@@ -47,11 +43,6 @@ export default function SalesList() {
     fetchSales();
   }, [page, perPage]);
 
-  const handleView = (sale: Sale) => {
-    setSelectedSale(sale);
-    setIsOpen(true);
-  };
-
   const handleGoToPage = () => {
     const pageNum = parseInt(gotoPage);
     if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
@@ -60,16 +51,19 @@ export default function SalesList() {
   };
 
   return (
-    <div className="p-4 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Sales List</h1>
+    <div className="p-4 max-w-7xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+        📋 Sales List
+      </h1>
 
-      <div className="flex items-center justify-between mb-2">
+      {/* Top Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
         <div>
           <label className="mr-2 font-medium">Items per page:</label>
           <select
             value={perPage}
             onChange={(e) => setPerPage(Number(e.target.value))}
-            className="border rounded px-2 py-1"
+            className="border rounded px-3 py-1"
           >
             <option value={20}>20</option>
             <option value={50}>50</option>
@@ -81,124 +75,104 @@ export default function SalesList() {
           <input
             type="number"
             placeholder="Go to page"
-            className="border px-2 py-1 rounded w-24"
+            className="border px-3 py-1 rounded w-28"
             value={gotoPage}
             onChange={(e) => setGotoPage(e.target.value)}
           />
           <button
             onClick={handleGoToPage}
-            className="bg-blue-500 text-white px-3 py-1 rounded"
+            className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
           >
             Go
           </button>
         </div>
       </div>
 
-      <table className="w-full border text-sm">
-        <thead>
-          <tr className="bg-gray-100 text-left">
-            <th className="p-2 border">SI</th>
-            <th className="p-2 border">Name</th>
-            <th className="p-2 border">Address</th>
-            <th className="p-2 border">Mobile</th>
-            <th className="p-2 border">View</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sales.map((sale, index) => (
-            <tr key={sale._id} className="hover:bg-gray-50">
-              <td className="p-2 border">{(page - 1) * perPage + index + 1}</td>
-              <td className="p-2 border">{sale.customer.name}</td>
-              <td className="p-2 border">{sale.customer.address}</td>
-              <td className="p-2 border">{sale.customer.mobile}</td>
-              <td className="p-2 border">
-                <button
-                  onClick={() => handleView(sale)}
-                  className="text-blue-500 underline"
-                >
-                  View
-                </button>
-              </td>
+      {/* Flat Table */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full border border-gray-300 text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-2 border text-center">Invoice</th>
+              <th className="p-2 border text-center">Date</th>
+              <th className="p-2 border text-center">Product</th>
+              <th className="p-2 border text-center">Caton</th>
+              <th className="p-2 border text-center">Pcs</th>
+              <th className="p-2 border text-center">Feet</th>
+              <th className="p-2 border text-center">Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {sales.map((sale) =>
+              sale.products.map((product, idx) => (
+                <tr
+                  key={`${sale._id}-${idx}`}
+                  className="hover:bg-gray-50 text-center"
+                >
+                  {idx === 0 && (
+                    <>
+                      <td
+                        rowSpan={sale.products.length}
+                        className="p-2 border align-middle"
+                      >
+                        {sale.invoice_number}
+                      </td>
+                      <td
+                        rowSpan={sale.products.length}
+                        className="p-2 border align-middle"
+                      >
+                        {sale.date}
+                      </td>
+                    </>
+                  )}
+                  <td className="p-2 border">{product.product_code}</td>
+                  <td className="p-2 border">{product.sell_caton}</td>
+                  <td className="p-2 border">{product.sell_pcs}</td>
+                  <td className="p-2 border">{product.sell_feet.toFixed(2)}</td>
+                  {idx === 0 && (
+                    <td
+                      rowSpan={sale.products.length}
+                      className="p-2 border align-middle"
+                    >
+                      <button
+                        onClick={() =>
+                          navigate(`/dashboard/sale/update/${sale._id}`)
+                        }
+                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                      >
+                        ✏️ Update
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Pagination */}
-      <div className="flex justify-between items-center mt-4">
+      <div className="flex justify-between items-center mt-6">
         <button
           onClick={() => page > 1 && setPage(page - 1)}
           disabled={page === 1}
-          className="px-4 py-1 border rounded disabled:opacity-50"
+          className="px-5 py-1 border rounded disabled:opacity-40 bg-gray-100 hover:bg-gray-200"
         >
-          Prev
+          ⬅️ Prev
         </button>
 
-        <span className="font-semibold">
+        <span className="font-semibold text-gray-700">
           Page {page} of {totalPages}
         </span>
 
         <button
           onClick={() => page < totalPages && setPage(page + 1)}
           disabled={page === totalPages}
-          className="px-4 py-1 border rounded disabled:opacity-50"
+          className="px-5 py-1 border rounded disabled:opacity-40 bg-gray-100 hover:bg-gray-200"
         >
-          Next
+          Next ➡️
         </button>
       </div>
-
-      {/* Modal */}
-      <Dialog
-        open={isOpen}
-        onClose={() => setIsOpen(false)}
-        className="relative z-50"
-      >
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-        <div className="fixed inset-0 flex items-center justify-center">
-          <Dialog.Panel className="bg-white rounded shadow-lg p-6 w-[500px]">
-            <Dialog.Title className="text-lg font-bold mb-2">
-              Sale Details
-            </Dialog.Title>
-            {selectedSale && (
-              <div className="text-sm">
-                <p>
-                  <strong>Name:</strong> {selectedSale.customer.name}
-                </p>
-                <p>
-                  <strong>Address:</strong> {selectedSale.customer.address}
-                </p>
-                <p>
-                  <strong>Mobile:</strong> {selectedSale.customer.mobile}
-                </p>
-                <p>
-                  <strong>Date:</strong> {selectedSale.date}
-                </p>
-
-                <div className="mt-2">
-                  <h4 className="font-medium underline mb-1">Products:</h4>
-                  <ul className="list-disc list-inside space-y-1">
-                    {selectedSale.products.map((p, idx) => (
-                      <li key={idx}>
-                        <span className="font-semibold">{p.product_code}</span>{" "}
-                        — {p.sell_caton} caton, {p.sell_feet} feet
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => setIsOpen(false)}
-                className="bg-red-500 text-white px-4 py-1 rounded"
-              >
-                Close
-              </button>
-            </div>
-          </Dialog.Panel>
-        </div>
-      </Dialog>
     </div>
   );
 }

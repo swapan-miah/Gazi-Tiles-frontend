@@ -11,8 +11,9 @@ import Purchase from "../Pages/Dashboard/Purchase/Purchase";
 import Store from "../Pages/Dashboard/Store/Store";
 import SaleForm from "../Pages/Dashboard/SaleForm/SaleForm";
 import SalesList from "../Pages/Dashboard/SaleList/SaleList";
-import Godown from "../Pages/Dashboard/Godown/Godown";
+// import Godown from "../Pages/Dashboard/Godown/Godown";
 import UpdatePurchase from "../Pages/Dashboard/Purchase/UpdatePurchase";
+import SaleUpdate from "../Pages/Dashboard/SaleUpdate/SaleUpdate";
 
 const router = createBrowserRouter([
   {
@@ -41,7 +42,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/dashboard/godown" replace />,
+        element: <Navigate to="/dashboard/stock" replace />,
       },
       {
         path: "/dashboard/add-company",
@@ -68,13 +69,21 @@ const router = createBrowserRouter([
         element: <SaleForm></SaleForm>,
       },
       {
+        path: "/dashboard/sale-form",
+        element: <SaleForm></SaleForm>,
+      },
+      {
         path: "/dashboard/sales-history",
         element: <SalesList></SalesList>,
       },
       {
-        path: "/dashboard/godown",
-        element: <Godown></Godown>,
+        path: "/dashboard/sale/update/:saleId",
+        element: <SaleUpdate></SaleUpdate>,
       },
+      // {
+      //   path: "/dashboard/godown",
+      //   element: <Godown></Godown>,
+      // },
     ],
   },
 ]);

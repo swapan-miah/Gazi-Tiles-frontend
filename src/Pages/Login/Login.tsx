@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
 import { Link, NavLink, useNavigate } from "react-router-dom";
@@ -18,11 +18,16 @@ const Login: React.FC = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormInputs>();
-  const { signIn } = useContext(AuthContext) as AuthContextType;
+  const { signIn, user } = useContext(AuthContext) as AuthContextType;
   const [loginError, setLoginError] = useState<string>("");
-  const [showPassword, setShowPassword] = useState<boolean>(false); // State to toggle password visibility
-  // const location = useLocation(); // Removed unused variable
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   const handleLogin: SubmitHandler<LoginFormInputs> = (data) => {
     setLoginError("");
@@ -40,7 +45,6 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-200 py-8 px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center">
-        {/* Logo Placeholder */}
         <div className="mb-6">
           <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center">
             <span className="text-3xl font-bold text-indigo-600">GT</span>
