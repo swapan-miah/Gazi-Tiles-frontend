@@ -8,7 +8,7 @@ const navItems = [
   { name: "Stock", path: "/dashboard/stock" },
   { name: "Sales Form", path: "/dashboard/sale-form" },
   { name: "Sales History", path: "/dashboard/sales-history" },
-  // { name: "Godown", path: "/dashboard/godown" },
+  { name: "Isoft", path: "/dashboard/Isoft" },
 ];
 
 interface SidebarProps {

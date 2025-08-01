@@ -4,7 +4,6 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Select from "react-select";
 
-
 interface Product {
   _id: string;
   product_code: string;
@@ -27,6 +26,7 @@ interface FormValues {
   product_code: string;
   company: string;
   caton: number;
+  pcs: number;
   height: number;
   width: number;
   per_caton_to_pcs: number;
@@ -38,7 +38,6 @@ interface AddPurchaseProps {
 }
 
 const AddPurchase = ({ onAdded }: AddPurchaseProps) => {
-
   const { register, handleSubmit, reset, setValue } = useForm<FormValues>();
 
   // ✅ Product fetch
@@ -99,7 +98,7 @@ const AddPurchase = ({ onAdded }: AddPurchaseProps) => {
       toast.error("⚠️ Please select a valid product first");
       return;
     }
-
+    console.log(data);
     mutate(data);
   };
 
@@ -158,7 +157,22 @@ const AddPurchase = ({ onAdded }: AddPurchaseProps) => {
             type="number"
             {...register("caton", {
               required: true,
-              min: 1,
+              min: 0,
+              valueAsNumber: true,
+            })}
+            onWheel={(e) => e.currentTarget.blur()}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
+        {/* pcs */}
+        <div>
+          <label className="block font-semibold mb-1">Pcs</label>
+          <input
+            type="number"
+            {...register("pcs", {
+              required: true,
+              min: 0,
               valueAsNumber: true,
             })}
             onWheel={(e) => e.currentTarget.blur()}
@@ -215,7 +229,7 @@ const AddPurchase = ({ onAdded }: AddPurchaseProps) => {
         </div>
 
         {/* Date */}
-        <div className="md:col-span-2">
+        <div>
           <label className="block font-semibold mb-1">Date</label>
           <input
             type="date"

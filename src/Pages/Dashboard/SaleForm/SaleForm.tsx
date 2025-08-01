@@ -37,7 +37,7 @@ const SaleForm: React.FC = () => {
   const [selectedCode, setSelectedCode] = useState("");
   const [sellCtn, setSellCtn] = useState(0);
   const [sellPcs, setSellPcs] = useState(0);
-  const [invoiceNumber, setInvoiceNumber] = useState<number | null>(null);
+  const [invoiceNumber, setInvoiceNumber] = useState<number | null>(null); // Changed to allow user input
   const [products, setProducts] = useState<ISaleProduct[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -47,12 +47,7 @@ const SaleForm: React.FC = () => {
       .then((res) => setAllProducts(res.data.data))
       .catch(() => toast.error("Failed to load product list"));
 
-    axios
-      .get(`${import.meta.env.VITE_Basic_Api}/api/invoice/next-invoice`)
-      .then((res) => {
-        setInvoiceNumber(res.data.invoice_number ?? 1);
-      })
-      .catch(() => toast.error("Failed to fetch invoice number"));
+    // Removed the API call for fetching invoice number
   }, []);
 
   const handleAddProduct = () => {
@@ -133,7 +128,8 @@ const SaleForm: React.FC = () => {
 
   const handleSubmit = async () => {
     if (products.length === 0) return toast.error("Add at least one product");
-    if (!invoiceNumber) return toast.error("Invoice number missing");
+    if (invoiceNumber === null || invoiceNumber <= 0)
+      return toast.error("Please enter a valid Invoice Number"); // Added validation for invoice number
 
     const payload: ISale = {
       invoice_number: invoiceNumber,
@@ -157,7 +153,7 @@ const SaleForm: React.FC = () => {
 
       await promise;
       setProducts([]);
-      setInvoiceNumber((prev) => (prev ?? 0) + 1);
+      setInvoiceNumber(null); // Clear invoice number after successful submission
       navigate("/dashboard/sales-history");
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Server error");
@@ -180,8 +176,11 @@ const SaleForm: React.FC = () => {
           <input
             type="number"
             value={invoiceNumber ?? ""}
-            readOnly
-            className="border px-3 py-2 rounded w-full bg-gray-100 cursor-not-allowed"
+            onChange={(e) => setInvoiceNumber(Number(e.target.value))} // Allow user to input
+            className="border px-3 py-2 rounded w-full"
+            placeholder="Enter Invoice Number"
+            min={1}
+            onWheel={(e) => e.currentTarget.blur()}
           />
         </div>
       </div>
@@ -294,7 +293,6 @@ const SaleForm: React.FC = () => {
                 <th>Sell Caton</th>
                 <th>Sell Pcs</th>
                 <th>Sell Feet</th>
-
                 <th>Action</th>
               </tr>
             </thead>
@@ -310,7 +308,6 @@ const SaleForm: React.FC = () => {
                   <td>{p.sell_caton}</td>
                   <td>{p.sell_pcs}</td>
                   <td>{p.sell_feet.toFixed(2)}</td>
-
                   <td>
                     <button
                       onClick={() => handleRemoveProduct(p.product_code)}

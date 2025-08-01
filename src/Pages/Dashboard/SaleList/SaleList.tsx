@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2"; // Import SweetAlert2
+import toast from "react-hot-toast"; // Import React Hot Toast
 
+// Define the interfaces for product and sale data
 interface Product {
   product_code: string;
   sell_caton: number;
@@ -25,6 +28,7 @@ export default function SalesList() {
 
   const navigate = useNavigate();
 
+  // Function to fetch sales data from the API
   const fetchSales = async () => {
     try {
       const res = await axios.get(
@@ -36,17 +40,60 @@ export default function SalesList() {
       setTotalPages(res.data.totalPages);
     } catch (err) {
       console.error("Failed to fetch sales:", err);
+      toast.error("Failed to fetch sales data!"); // Show Hot Toast on error
     }
   };
 
+  // Function to handle deleting a sale
+  const handleDeleteSale = async (saleId: string) => {
+    // Show a confirmation dialog using SweetAlert2
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "Are you sure you want to delete this sale? This will affect stock quantities and this action cannot be undone!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "No, cancel",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        // Make a DELETE request to the new API endpoint
+        await axios.delete(
+          `${import.meta.env.VITE_Basic_Api}/api/sale/delete/${saleId}`
+        );
+        // Show success message using SweetAlert2 and React Hot Toast
+        Swal.fire(
+          "Deleted!",
+          "The sale has been successfully deleted.",
+          "success"
+        );
+        toast.success("Sale successfully deleted!");
+        // Fetch the updated sales list after successful deletion
+        fetchSales();
+      } catch (err) {
+        console.error("Failed to delete sale:", err);
+        // Show error message using SweetAlert2 and React Hot Toast
+        Swal.fire("Failed!", "Failed to delete the sale.", "error");
+        toast.error("Failed to delete the sale!");
+      }
+    }
+  };
+
+  // Effect hook to fetch data whenever page or perPage changes
   useEffect(() => {
     fetchSales();
   }, [page, perPage]);
 
+  // Handle "Go to Page" input and button
   const handleGoToPage = () => {
     const pageNum = parseInt(gotoPage);
     if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
       setPage(pageNum);
+    } else {
+      toast.error("Please enter a valid page number!"); // Hot Toast for invalid page number
     }
   };
 
@@ -132,15 +179,21 @@ export default function SalesList() {
                   {idx === 0 && (
                     <td
                       rowSpan={sale.products.length}
-                      className="p-2 border align-middle"
+                      className="p-2 border align-middle flex flex-col space-y-2 justify-center items-center"
                     >
                       <button
                         onClick={() =>
                           navigate(`/dashboard/sale/update/${sale._id}`)
                         }
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm w-full"
                       >
                         ✏️ Update
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSale(sale._id)}
+                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm w-full"
+                      >
+                        🗑️ Delete
                       </button>
                     </td>
                   )}

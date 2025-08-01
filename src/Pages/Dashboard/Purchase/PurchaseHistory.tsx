@@ -2,13 +2,14 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const PurchaseHistory = ({ refresh }: { refresh: boolean }) => {
   const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [limit, setLimit] = useState(20);
   const [page, setPage] = useState(1);
-  const [goPage, setGoPage] = useState(""); // Go to page input
+  const [goPage, setGoPage] = useState("");
   const [total, setTotal] = useState(0);
 
   const fetchHistory = async () => {
@@ -41,17 +42,43 @@ const PurchaseHistory = ({ refresh }: { refresh: boolean }) => {
     setGoPage("");
   };
 
+  // ✅ Delete with SweetAlert2
+  const handleDelete = async (id: string) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await axios.delete(
+          `${import.meta.env.VITE_Basic_Api}/api/purchase/${id}`
+        );
+        toast.success(res.data.message || "🗑️ Deleted successfully");
+        fetchHistory();
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || "❌ Failed to delete");
+      }
+    } else {
+      toast("Deletion cancelled");
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto mt-6 text-sm">
       {/* Pagination Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-3 gap-2">
-        {/* Limit Selector */}
         <div>
           <label className="mr-2">Show:</label>
           <select
             value={limit}
             onChange={(e) => {
-              setPage(1); // Reset to page 1 on limit change
+              setPage(1);
               setLimit(Number(e.target.value));
             }}
             className="border rounded px-2 py-1"
@@ -114,17 +141,20 @@ const PurchaseHistory = ({ refresh }: { refresh: boolean }) => {
             <th className="border p-2">Product Code</th>
             <th className="border p-2">Company</th>
             <th className="border p-2">Caton</th>
+            <th className="border p-2">Pcs</th>
             <th className="border p-2">Date</th>
             <th className="border p-2">Edit</th>
+            <th className="border p-2">Delete</th>
           </tr>
         </thead>
         <tbody>
           {data.map((item: any, idx: number) => (
-            <tr key={idx}>
-              <td className="border p-2">{idx + 1}</td>
+            <tr key={item._id}>
+              <td className="border p-2">{(page - 1) * limit + idx + 1}</td>
               <td className="border p-2">{item.product_code}</td>
               <td className="border p-2">{item.company}</td>
               <td className="border p-2 text-right">{item.caton}</td>
+              <td className="border p-2 text-right">{item.pcs}</td>
               <td className="border p-2 text-right">{item.date}</td>
               <td className="border p-2 text-center">
                 <button
@@ -136,6 +166,14 @@ const PurchaseHistory = ({ refresh }: { refresh: boolean }) => {
                   className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
                 >
                   Edit
+                </button>
+              </td>
+              <td className="border p-2 text-center">
+                <button
+                  onClick={() => handleDelete(item._id)}
+                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                >
+                  Delete
                 </button>
               </td>
             </tr>

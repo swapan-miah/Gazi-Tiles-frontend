@@ -14,6 +14,7 @@ import SalesList from "../Pages/Dashboard/SaleList/SaleList";
 // import Godown from "../Pages/Dashboard/Godown/Godown";
 import UpdatePurchase from "../Pages/Dashboard/Purchase/UpdatePurchase";
 import SaleUpdate from "../Pages/Dashboard/SaleUpdate/SaleUpdate";
+import Isoft from "../Pages/Dashboard/Isoft/Isoft";
 
 const router = createBrowserRouter([
   {
@@ -80,10 +81,10 @@ const router = createBrowserRouter([
         path: "/dashboard/sale/update/:saleId",
         element: <SaleUpdate></SaleUpdate>,
       },
-      // {
-      //   path: "/dashboard/godown",
-      //   element: <Godown></Godown>,
-      // },
+      {
+        path: "/dashboard/isoft",
+        element: <Isoft></Isoft>,
+      },
     ],
   },
 ]);
