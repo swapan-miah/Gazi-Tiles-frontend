@@ -37,17 +37,38 @@ const SaleForm: React.FC = () => {
   const [selectedCode, setSelectedCode] = useState("");
   const [sellCtn, setSellCtn] = useState(0);
   const [sellPcs, setSellPcs] = useState(0);
-  const [invoiceNumber, setInvoiceNumber] = useState<number | null>(null); // Changed to allow user input
+  const [invoiceNumber, setInvoiceNumber] = useState<number | null>(null);
   const [products, setProducts] = useState<ISaleProduct[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Add a state to handle the loading of the invoice number
+  const [isLoadingInvoice, setIsLoadingInvoice] = useState(true);
 
   useEffect(() => {
+    // Fetch all products
     axios
       .get(`${import.meta.env.VITE_Basic_Api}/api/store/in-stock/all`)
       .then((res) => setAllProducts(res.data.data))
       .catch(() => toast.error("Failed to load product list"));
 
-    // Removed the API call for fetching invoice number
+    // Fetch the next invoice number
+    const fetchNextInvoiceNumber = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_Basic_Api}/api/invoice/next-invoice`
+        );
+        if (res.data.success) {
+          setInvoiceNumber(res.data.invoice_number);
+        } else {
+          toast.error(res.data.message || "Failed to fetch invoice number");
+        }
+      } catch (err) {
+        toast.error("Failed to fetch invoice number from server");
+      } finally {
+        setIsLoadingInvoice(false);
+      }
+    };
+
+    fetchNextInvoiceNumber();
   }, []);
 
   const handleAddProduct = () => {
@@ -129,15 +150,15 @@ const SaleForm: React.FC = () => {
   const handleSubmit = async () => {
     if (products.length === 0) return toast.error("Add at least one product");
     if (invoiceNumber === null || invoiceNumber <= 0)
-      return toast.error("Please enter a valid Invoice Number"); // Added validation for invoice number
+      return toast.error(
+        "Failed to get a valid Invoice Number. Please refresh."
+      );
 
     const payload: ISale = {
       invoice_number: invoiceNumber,
       date: new Date().toISOString().slice(0, 10),
       products,
     };
-
-    console.log("payload", payload);
 
     try {
       setIsSubmitting(true);
@@ -153,7 +174,7 @@ const SaleForm: React.FC = () => {
 
       await promise;
       setProducts([]);
-      setInvoiceNumber(null); // Clear invoice number after successful submission
+      setInvoiceNumber(null);
       navigate("/dashboard/sales-history");
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Server error");
@@ -175,12 +196,11 @@ const SaleForm: React.FC = () => {
           <label className="block font-medium mb-1">Invoice Number</label>
           <input
             type="number"
-            value={invoiceNumber ?? ""}
-            onChange={(e) => setInvoiceNumber(Number(e.target.value))} // Allow user to input
-            className="border px-3 py-2 rounded w-full"
-            placeholder="Enter Invoice Number"
-            min={1}
-            onWheel={(e) => e.currentTarget.blur()}
+            value={isLoadingInvoice ? "Loading..." : invoiceNumber ?? ""}
+            readOnly // Make the input read-only
+            disabled // Disable the input to prevent user changes
+            className="border px-3 py-2 rounded w-full bg-gray-100 cursor-not-allowed"
+            placeholder="Fetching Invoice Number..."
           />
         </div>
       </div>
