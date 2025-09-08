@@ -40,12 +40,12 @@ const Isoft = () => {
         <div className="bg-indigo-50 p-4 rounded-lg shadow flex flex-col items-center space-y-1">
           <span className="text-sm text-gray-600">Whatsapp</span>
           <a
-            href="https://wa.me/8801718519989"
+            href="https://wa.me/8801332331964"
             className="text-xl font-bold text-green-600 hover:underline"
             target="_blank"
             rel="noopener noreferrer"
           >
-            📞 01718-519989
+            📞 01332331964
           </a>
         </div>
 

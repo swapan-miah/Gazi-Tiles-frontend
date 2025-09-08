@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import CreateCompany from "./CreateCompany";
 import Comapany_List from "./Comapany_List";
 import { toast } from "react-hot-toast"; // toast নোটিফিকেশনের জন্য
+import PaymentNotice from "../../../Components/PaymentNotice/PaymentNotice";
 
 // ✅ Define company type
 export interface ICompany {
@@ -75,6 +76,7 @@ const Company = () => {
 
   return (
     <div className="p-4 space-y-6">
+      <PaymentNotice></PaymentNotice>
       <CreateCompany refetch={refetch} />{" "}
       {/* CreateCompany এখনো refetch ব্যবহার করবে */}
       <Comapany_List

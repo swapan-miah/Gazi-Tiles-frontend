@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "gazi-tiles-hutapara"
-  }
+    "default": "gazi-tiles-hutapara",
+    "gazi-tiles-hutapara": "gazi-tiles-hutapara"
+  },
+  "targets": {},
+  "etags": {}
 }

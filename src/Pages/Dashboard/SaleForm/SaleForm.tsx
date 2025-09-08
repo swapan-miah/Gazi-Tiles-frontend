@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
+import PaymentNotice from "../../../Components/PaymentNotice/PaymentNotice";
 
 interface StoreProduct {
   _id: string;
@@ -189,6 +190,7 @@ const SaleForm: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto p-6 bg-white shadow rounded space-y-6">
+      <PaymentNotice></PaymentNotice>
       <h2 className="text-2xl font-semibold text-center">🧾 Sale Entry</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
