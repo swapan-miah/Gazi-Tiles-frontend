@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
 import toast from "react-hot-toast";
-import PaymentNotice from "../../../Components/PaymentNotice/PaymentNotice";
+// import PaymentNotice from "../../../Components/PaymentNotice/PaymentNotice";
 
 interface IStore {
   _id: string;
@@ -109,7 +109,7 @@ const Store = () => {
 
   return (
     <div className="p-4 max-w-7xl mx-auto">
-      <PaymentNotice></PaymentNotice>
+      {/* <PaymentNotice></PaymentNotice> */}
       <h1 className="text-2xl font-bold mb-4">📦 Store Inventory</h1>
 
       <div className="flex flex-col md:flex-row gap-4 mb-4">

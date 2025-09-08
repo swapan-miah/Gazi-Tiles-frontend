@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import AddProduct from "./AddProduct";
 import ProductList from "./ProductList";
-import PaymentNotice from "../../../Components/PaymentNotice/PaymentNotice";
+// import PaymentNotice from "../../../Components/PaymentNotice/PaymentNotice";
 
 export interface IProduct {
   _id: string;
@@ -34,7 +34,7 @@ const Product = () => {
 
   return (
     <div className="p-4">
-      <PaymentNotice></PaymentNotice>
+      {/* <PaymentNotice></PaymentNotice> */}
       <AddProduct refetch={refetch} />
       <ProductList products={products} refetch={refetch} />
     </div>

@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2"; // Import SweetAlert2
 import toast from "react-hot-toast"; // Import React Hot Toast
-import PaymentNotice from "../../../Components/PaymentNotice/PaymentNotice";
+// import PaymentNotice from "../../../Components/PaymentNotice/PaymentNotice";
 
 // Define the interfaces for product and sale data
 interface Product {
@@ -100,7 +100,7 @@ export default function SalesList() {
 
   return (
     <div className="p-4 max-w-7xl mx-auto">
-      <PaymentNotice></PaymentNotice>
+      {/* <PaymentNotice></PaymentNotice> */}
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
         📋 Sales List
       </h1>
